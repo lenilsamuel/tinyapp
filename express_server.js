@@ -12,7 +12,7 @@ function generateRandomString() {
   return randomString;
 }
 
-console.log(generateRandomString());
+
 
 
 app.set('view engine', 'ejs');
