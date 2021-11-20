@@ -34,11 +34,12 @@ app.get('/urls/new', (req, res) => {
 app.post("/urls", (req, res) => {
   const sURL = generateRandomString();
   urlDatabase[sURL] = req.body.longURL;
-  // console.log(urlDatabase);
-  // console.log(req.body);  // Log the POST request body to the console
-  // console.log(res);
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
   res.redirect(`/urls/${sURL}`);
+});
+
+app.post("/urls/:shortURl/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURl];
+  res.redirect('/urls/');
 });
 
 app.get("/urls/:shortURL", (req, res) => {
