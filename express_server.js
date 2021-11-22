@@ -2,6 +2,10 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+const cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
+
 function generateRandomString() {
   let randomString = "";
   const alphaNumericChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -47,7 +51,6 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post('/urls/:id', (req, res) => {
-  console.log(req.params.id);
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect('/urls/')
 });
