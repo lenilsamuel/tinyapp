@@ -16,7 +16,9 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <% if (!username) { %>
+        <a class="nav-item nav-link" href="/login">Login</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
+        <!-- <% if (!username) { %>
           <div class="contentcontainer med left" style="margin-left: 863px;">
             <form action="/login" style="text-align: right;" method="POST">
               <input type="text" placeholder="Username" name="username">
@@ -28,14 +30,13 @@
         <% } else { %>
           <div class="contentcontainer med left" style="margin-left: 850px;">
             <form action="/logout" method="POST" class = "d-flex justify-content-center">
-              <h6>Logged In As: <%= username.email + '!' %></h6>
-              <!-- <input type="text" placeholder="Username" name="username"> -->
+              <h6>Logged In As: <%= username.email + '!' %></h6>        
               <button type="submit" class="btn btn-outline-dark btn-sm" style = "height: 35px ; margin-top: auto; margin-bottom: auto;">
                 Logout
               </button>
             </form>
           </div>
-        <% } %>
+        <% } %> -->
       </div>
     </div>
   </nav>
