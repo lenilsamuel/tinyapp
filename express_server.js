@@ -61,6 +61,12 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  if (!(req.body.email || req.body.password)) {
+    return res.status(404);
+  }
+  for (const key in users) {
+    if (users[key].email === req.body.email) return res.status(400);
+  }
   const userID = generateRandomString();
   users[userID] = {
     id: userID,
@@ -68,7 +74,6 @@ app.post("/register", (req, res) => {
     password: req.body.password,
   };
   res.cookie("user_id", userID);
-  // console.log(users);
   res.redirect("/urls");
 });
 
