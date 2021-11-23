@@ -81,7 +81,6 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
