@@ -28,7 +28,7 @@
         <% } else { %>
           <div class="contentcontainer med left" style="margin-left: 850px;">
             <form action="/logout" method="POST" class = "d-flex justify-content-center">
-              <h6>Logged In As: <%= username + '!' %></h6>
+              <h6>Logged In As: <%= username.email + '!' %></h6>
               <!-- <input type="text" placeholder="Username" name="username"> -->
               <button type="submit" class="btn btn-outline-dark btn-sm" style = "height: 35px ; margin-top: auto; margin-bottom: auto;">
                 Logout
