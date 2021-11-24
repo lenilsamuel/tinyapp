@@ -62,7 +62,7 @@ app.post("/urls", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (!(req.body.email || req.body.password)) {
-    return res.status(404);
+    return res.sendStatus(400);
   }
   for (const key in users) {
     if (users[key].email === req.body.email) return res.status(400);
@@ -73,6 +73,7 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password,
   };
+  console.log(users);
   res.cookie("user_id", userID);
   res.redirect("/urls");
 });
@@ -97,9 +98,13 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  // res.cookie("username", req.body.username);
-  
-  res.redirect("/urls");
+  for (const key in users) {
+    if (users[key].email === req.body.email && users[key].password === req.body.password) {
+      res.cookie("user_id", key);
+      return res.redirect('/urls');
+    } else return res.sendStatus(403);
+    // else res.redirect('/url');
+  }
 });
 
 app.get("/register", (req, res) => {
