@@ -12,6 +12,13 @@ app.use(cookieSession({
   keys: ['id'],
 }));
 
+const {
+  urlsForUser,
+  checkEmailPassword,
+  getUserByEmail,
+  generateRandomString,
+} = require('./helpers');
+
 const users = {
   user2RandomID: {
     id: "user2RandomID",
@@ -25,33 +32,7 @@ const users = {
   },
 };
 
-function generateRandomString() {
-  let randomString = "";
-  const alphaNumericChars =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  for (let i = 0; i < 6; i++) {
-    const random = Math.floor(Math.random() * 62);
-    randomString += alphaNumericChars[random];
-  }
-  return randomString;
-}
 
-const getUserByEmail = function(email, database) {
-  for (const key in database) {
-    if (database[key].email === email) {
-      return database[key];
-    }
-  }
-};
-
-const checkEmailPassword = (email, password, users) => {
-  for (const key in users) {
-    if (users[key].email === email && bcrypt.compareSync(password, users[key].password)) {
-      // req.session.user_id = key;
-      return key;
-    } 
-  }
-}
 
 app.set("view engine", "ejs");
 
@@ -66,16 +47,6 @@ const urlDatabase = {
   },
 };
 
-urlsForUser = (id) => {
-  let urlsForUser = {};
-  for (const key in urlDatabase) {
-    if (urlDatabase[key].userID === id) {
-      urlsForUser[key] = urlDatabase[key].longURL;
-    }
-  }
-  return urlsForUser;
-};
-
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -83,7 +54,8 @@ app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     return res.send("Please login");
   }
-  const userURLS = urlsForUser(req.session.user_id);
+  const userURLS = urlsForUser(req.session.user_id, urlDatabase);
+  // console.log('line 58', userURLS);
   const templateVars = {
     urls: userURLS,
     user_id: users[req.session.user_id],
@@ -114,10 +86,6 @@ app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
     return res.status(400).send('Please enter login information');
   }
-  // for (const key in users) {
-  //   if (users[key].email === req.body.email) return res.status(400).send('This email is already in use');
-  // }
-  // console.log('line 111 error', getUserByEmail(req.body.email, users));
 
   if (getUserByEmail(req.body.email, users)) {
     return res.status(400).send('This email is in use already');
@@ -146,7 +114,8 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   if (!urlInfo || req.session["user_id"] !== urlInfo.userID) {
     return res.send('Please login');
   }
-  console.log(req.body.longURL);
+  // console.log('line 121', req.body.longURL);
+  if (req.body.longURL)
   urlDatabase[req.params.shortURL].longURL = req.body.longURL;
 
   res.redirect(`/urls/${req.params.shortURL}`);
@@ -166,12 +135,6 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  // for (const key in users) {
-  //   if (users[key].email === req.body.email && bcrypt.compareSync(req.body.password, users[key].password)) {
-  //     req.session.user_id = key;
-  //     return res.redirect("/urls");
-  //   } 
-  // }
   const ID = checkEmailPassword(req.body.email, req.body.password, users);
   if (ID) {
     req.session.user_id = ID;
@@ -212,7 +175,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log(urlDatabase);
+  // console.log('line 187', urlDatabase);
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
