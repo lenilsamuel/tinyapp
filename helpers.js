@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 function generateRandomString() {
   let randomString = "";
   const alphaNumericChars =
@@ -12,7 +14,7 @@ function generateRandomString() {
 const getUserByEmail = function (email, database) {
   for (const key in database) {
     if (database[key].email === email) {
-      return database[key];
+      return database[key].id;
     }
   }
 };
@@ -29,12 +31,19 @@ const checkEmailPassword = (email, password, users) => {
   }
 };
 
-urlsForUser = (id) => {
+urlsForUser = (id, database) => {
   let urlsForUser = {};
-  for (const key in urlDatabase) {
-    if (urlDatabase[key].userID === id) {
-      urlsForUser[key] = urlDatabase[key].longURL;
+  for (const key in database) {
+    if (database[key].userID === id) {
+      urlsForUser[key] = database[key].longURL;
     }
   }
   return urlsForUser;
+};
+
+module.exports = {
+  urlsForUser,
+  checkEmailPassword,
+  getUserByEmail,
+  generateRandomString,
 };
