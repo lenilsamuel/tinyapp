@@ -36,6 +36,23 @@ function generateRandomString() {
   return randomString;
 }
 
+const getUserByEmail = function(email, database) {
+  for (const key in database) {
+    if (database[key].email === email) {
+      return database[key];
+    }
+  }
+};
+
+const checkEmailPassword = (email, password, users) => {
+  for (const key in users) {
+    if (users[key].email === email && bcrypt.compareSync(password, users[key].password)) {
+      // req.session.user_id = key;
+      return key;
+    } 
+  }
+}
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -84,7 +101,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls", (req, res) => {
+app.post("/urls/new", (req, res) => {
   const sURL = generateRandomString();
   urlDatabase[sURL] = {
     longURL: req.body.longURL,
@@ -94,12 +111,18 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  if (!(req.body.email || req.body.password)) {
+  if (!req.body.email || !req.body.password) {
     return res.status(400).send('Please enter login information');
   }
-  for (const key in users) {
-    if (users[key].email === req.body.email) return res.sendStatus(400);
+  // for (const key in users) {
+  //   if (users[key].email === req.body.email) return res.status(400).send('This email is already in use');
+  // }
+  // console.log('line 111 error', getUserByEmail(req.body.email, users));
+
+  if (getUserByEmail(req.body.email, users)) {
+    return res.status(400).send('This email is in use already');
   }
+
   const userID = generateRandomString();
   users[userID] = {
     id: userID,
@@ -123,7 +146,9 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   if (!urlInfo || req.session["user_id"] !== urlInfo.userID) {
     return res.send('Please login');
   }
+  console.log(req.body.longURL);
   urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
@@ -141,13 +166,18 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  for (const key in users) {
-    if (users[key].email === req.body.email && bcrypt.compareSync(req.body.password, users[key].password)) {
-      req.session.user_id = key;
-      return res.redirect("/urls");
-    } 
+  // for (const key in users) {
+  //   if (users[key].email === req.body.email && bcrypt.compareSync(req.body.password, users[key].password)) {
+  //     req.session.user_id = key;
+  //     return res.redirect("/urls");
+  //   } 
+  // }
+  const ID = checkEmailPassword(req.body.email, req.body.password, users);
+  if (ID) {
+    req.session.user_id = ID;
+    return res.redirect('/urls');
   }
-  return res.sendStatus(403);
+  return res.status(403).send('Invalid credentials');
 });
 
 app.get("/register", (req, res) => {
@@ -182,6 +212,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  console.log(urlDatabase);
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
