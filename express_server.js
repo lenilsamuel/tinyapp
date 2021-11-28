@@ -55,7 +55,6 @@ app.get("/urls", (req, res) => {
     return res.send("Please login");
   }
   const userURLS = urlsForUser(req.session.user_id, urlDatabase);
-  // console.log('line 58', userURLS);
   const templateVars = {
     urls: userURLS,
     user_id: users[req.session.user_id],
@@ -114,10 +113,6 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   if (!urlInfo || req.session["user_id"] !== urlInfo.userID) {
     return res.send('Please login');
   }
-  // console.log('line 121', req.body.longURL);
-  if (req.body.longURL)
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
@@ -126,7 +121,7 @@ app.post("/urls/:id", (req, res) => {
     longURL: req.body.longURL,
     userID: req.session.user_id,
   };
-  res.redirect("urls_index");
+  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
@@ -163,7 +158,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!id) {
     return res.send('Please login');
   }
-  if(req.session["user_id"] !== urlDatabase[req.params.shortURL]["userID"]) {
+  if(req.session["user_id"] !== urlDatabase[req.params.shortURL].userID) {
     return res.send('This short URL does not belong to you')
   } 
   const templateVars = {
@@ -175,7 +170,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  // console.log('line 187', urlDatabase);
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
