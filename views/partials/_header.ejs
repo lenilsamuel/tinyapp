@@ -17,8 +17,10 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         <% if (!user_id) { %>
+          <div class="collapse navbar-collapse id="navbarNavAltMarkup>
           <a class="nav-item nav-link" href="/login">Login</a>
           <a class="nav-item nav-link" href="/register">Register</a>
+          </div>
           <!-- <div class="contentcontainer med left" style="margin-left: 863px;">
             <form action="/login" style="text-align: right;" method="POST">
               <input type="text" placeholder="Username" name="username">
