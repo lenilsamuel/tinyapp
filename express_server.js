@@ -2,12 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
-const cookieParser = require("cookie-parser");
+
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 
-app.use(cookieParser());
 app.use(
   cookieSession({
     name: "user_id",
