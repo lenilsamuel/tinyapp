@@ -1,5 +1,6 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
+// Function that generates a random 6-digit alphanumeric string
 function generateRandomString() {
   let randomString = "";
   const alphaNumericChars =
@@ -11,6 +12,7 @@ function generateRandomString() {
   return randomString;
 }
 
+// Function that retrieves user id by associated email address
 const getUserByEmail = function (email, database) {
   for (const key in database) {
     if (database[key].email === email) {
@@ -19,18 +21,19 @@ const getUserByEmail = function (email, database) {
   }
 };
 
+// Function to check user login information matches database
 const checkEmailPassword = (email, password, users) => {
   for (const key in users) {
     if (
       users[key].email === email &&
       bcrypt.compareSync(password, users[key].password)
     ) {
-      // req.session.user_id = key;
       return key;
     }
   }
 };
 
+// Function to retrieve URLs specific to a user
 urlsForUser = (id, database) => {
   let urlsForUser = {};
   for (const key in database) {
