@@ -34,9 +34,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // GET for /urls
 app.get("/urls", (req, res) => {
-  // Check if user is logged in to display associated URLs
-  if (!req.session.user_id) {
-    return res.send("Please login");
+  // checks if user is logged in
+  const id = req.session.user_id;
+  if (!users[id]) {
+    return res.status(400).send("Please Login");
   }
   const userURLS = urlsForUser(req.session.user_id, urlDatabase);
   const templateVars = {
@@ -50,7 +51,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const id = req.session.user_id;
   // checks if user is logged in
-  if (!id) {
+  if (!users[id]) {
     return res.redirect("/login");
   }
   const templateVars = { user_id: users[req.session.user_id] };
@@ -58,7 +59,12 @@ app.get("/urls/new", (req, res) => {
 });
 
 // POST for new URLs
-app.post("/urls/new", (req, res) => {
+app.post("/urls", (req, res) => {
+  const id = req.session.user_id;
+  // checks if user is logged in
+  if (!users[id]) {
+    return res.status(400).send("Please Login");
+  }
   // generates a random short URL id
   const sURL = generateRandomString();
   // save to url database
@@ -101,18 +107,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls/");
 });
 
-// POST for editing a short URL
-app.post("/urls/:shortURL/edit", (req, res) => {
-  const urlInfo = urlDatabase[req.params.shortURL];
-  // Check to ensure only a logged in user can edit a short URL that belongs to them
+// POST for saving short URL to database
+app.post("/urls/:id", (req, res) => {
+  const urlInfo = urlDatabase[req.params.id];
   if (!urlInfo || req.session["user_id"] !== urlInfo.userID) {
     return res.status(401).send("Please login");
   }
-  res.redirect(`/urls/${req.params.shortURL}`);
-});
-
-// POST for saving short URL to database
-app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = {
     longURL: req.body.longURL,
     userID: req.session.user_id,
@@ -122,7 +122,7 @@ app.post("/urls/:id", (req, res) => {
 
 // POST for logging out a user
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
@@ -147,6 +147,9 @@ app.get("/register", (req, res) => {
 // GET for login page
 app.get("/login", (req, res) => {
   const id = req.session.user_id;
+  if (users[id]) {
+    return res.redirect('/urls/new');
+  }
   const templateVars = { user_id: users[req.session.user_id] };
   res.render("urls_login", templateVars);
 });
@@ -159,6 +162,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.send("Please login");
   }
   // Check to ensure short URL that is being accessed belongs to the logged in user
+
   if (req.session["user_id"] !== urlDatabase[req.params.shortURL].userID) {
     return res.send("This short URL does not belong to you");
   }
@@ -178,7 +182,12 @@ app.get("/u/:shortURL", (req, res) => {
 
 // GET for root directory
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  // checks if user is logged in
+  const id = req.session.user_id;
+  if (!users[id]) {
+    return res.redirect('/urls/new');
+  }
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
