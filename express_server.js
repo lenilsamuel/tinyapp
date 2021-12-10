@@ -32,47 +32,21 @@ const urlDatabase = {};
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// GET for /urls
-app.get("/urls", (req, res) => {
+// GET for root directory
+app.get("/", (req, res) => {
   // checks if user is logged in
   const id = req.session.user_id;
   if (!users[id]) {
-    return res.status(400).send("Please Login");
+    return res.redirect('/urls/new');
   }
-  const userURLS = urlsForUser(req.session.user_id, urlDatabase);
-  const templateVars = {
-    urls: userURLS,
-    user_id: users[req.session.user_id],
-  };
-  res.render("urls_index", templateVars);
+  res.redirect("/urls");
 });
 
-// GET for creating new URLs
-app.get("/urls/new", (req, res) => {
+// GET for register page
+app.get("/register", (req, res) => {
   const id = req.session.user_id;
-  // checks if user is logged in
-  if (!users[id]) {
-    return res.redirect("/login");
-  }
   const templateVars = { user_id: users[req.session.user_id] };
-  res.render("urls_new", templateVars);
-});
-
-// POST for new URLs
-app.post("/urls", (req, res) => {
-  const id = req.session.user_id;
-  // checks if user is logged in
-  if (!users[id]) {
-    return res.status(400).send("Please Login");
-  }
-  // generates a random short URL id
-  const sURL = generateRandomString();
-  // save to url database
-  urlDatabase[sURL] = {
-    longURL: req.body.longURL,
-    userID: req.session.user_id,
-  };
-  res.redirect(`/urls/${sURL}`);
+  res.render("urls_registration", templateVars);
 });
 
 // POST for register page
@@ -97,33 +71,14 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-// POST for deleting a short URL
-app.post("/urls/:shortURL/delete", (req, res) => {
-  // Checks that the short URL that is being deleted belongs to the user
-  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
-    return res.status(401).send("Please login");
+// GET for login page
+app.get("/login", (req, res) => {
+  const id = req.session.user_id;
+  if (users[id]) {
+    return res.redirect('/urls/new');
   }
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls/");
-});
-
-// POST for saving short URL to database
-app.post("/urls/:id", (req, res) => {
-  const urlInfo = urlDatabase[req.params.id];
-  if (!urlInfo || req.session["user_id"] !== urlInfo.userID) {
-    return res.status(401).send("Please login");
-  }
-  urlDatabase[req.params.id] = {
-    longURL: req.body.longURL,
-    userID: req.session.user_id,
-  };
-  res.redirect("/urls");
-});
-
-// POST for logging out a user
-app.post("/logout", (req, res) => {
-  req.session = null;
-  res.redirect("/login");
+  const templateVars = { user_id: users[req.session.user_id] };
+  res.render("urls_login", templateVars);
 });
 
 // POST for user login
@@ -137,21 +92,47 @@ app.post("/login", (req, res) => {
   return res.status(403).send("Invalid credentials");
 });
 
-// GET for register page
-app.get("/register", (req, res) => {
+// GET for /urls
+app.get("/urls", (req, res) => {
+  // checks if user is logged in
   const id = req.session.user_id;
-  const templateVars = { user_id: users[req.session.user_id] };
-  res.render("urls_registration", templateVars);
+  if (!users[id]) {
+    return res.status(400).send("Please Login");
+  }
+  const userURLS = urlsForUser(req.session.user_id, urlDatabase);
+  const templateVars = {
+    urls: userURLS,
+    user_id: users[req.session.user_id],
+  };
+  res.render("urls_index", templateVars);
 });
 
-// GET for login page
-app.get("/login", (req, res) => {
+// POST for new URLs
+app.post("/urls", (req, res) => {
   const id = req.session.user_id;
-  if (users[id]) {
-    return res.redirect('/urls/new');
+  // checks if user is logged in
+  if (!users[id]) {
+    return res.status(400).send("Please Login");
+  }
+  // generates a random short URL id
+  const sURL = generateRandomString();
+  // save to url database
+  urlDatabase[sURL] = {
+    longURL: req.body.longURL,
+    userID: req.session.user_id,
+  };
+  res.redirect(`/urls/${sURL}`);
+});
+
+// GET for creating new URLs
+app.get("/urls/new", (req, res) => {
+  const id = req.session.user_id;
+  // checks if user is logged in
+  if (!users[id]) {
+    return res.redirect("/login");
   }
   const templateVars = { user_id: users[req.session.user_id] };
-  res.render("urls_login", templateVars);
+  res.render("urls_new", templateVars);
 });
 
 // GET for specific short URL
@@ -162,7 +143,6 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.send("Please login");
   }
   // Check to ensure short URL that is being accessed belongs to the logged in user
-
   if (req.session["user_id"] !== urlDatabase[req.params.shortURL].userID) {
     return res.send("This short URL does not belong to you");
   }
@@ -174,20 +154,41 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// POST for editing short URL to database
+app.post("/urls/:id", (req, res) => {
+  const urlInfo = urlDatabase[req.params.id];
+  if (!urlInfo || req.session["user_id"] !== urlInfo.userID) {
+    return res.status(401).send("Please login");
+  }
+  urlDatabase[req.params.id] = {
+    longURL: req.body.longURL,
+    userID: req.session.user_id,
+  };
+  res.redirect("/urls");
+});
+
+
+// POST for deleting a short URL
+app.post("/urls/:shortURL/delete", (req, res) => {
+  // Checks that the short URL that is being deleted belongs to the user
+  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
+    return res.status(401).send("Please login");
+  }
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls/");
+});
+
+// POST for logging out a user
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/login");
+});
+
+
 // GET for redirecting user to the longURL based on the associated short URL
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
-});
-
-// GET for root directory
-app.get("/", (req, res) => {
-  // checks if user is logged in
-  const id = req.session.user_id;
-  if (!users[id]) {
-    return res.redirect('/urls/new');
-  }
-  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
